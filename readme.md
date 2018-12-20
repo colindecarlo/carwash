@@ -55,6 +55,13 @@ return [
 php artisan carwash:scrub
 ```
 
+To selectively scrub tables from your configuration, Carwash accepts a `--table` option. Multiple tables can be specified
+by using the `--table` option multiple times.
+
+```php
+php artisan carwash:scrub --table=users --table=addresses
+``` 
+
 ### Other
 Instead of passing a Faker Formatter as the value for each field in your **Carwash** config file, alternatively
 you can set the field value to a Callable that returns the new field value. This closure will receive an instance of
