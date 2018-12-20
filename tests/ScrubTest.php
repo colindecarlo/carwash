@@ -176,7 +176,50 @@ class ScrubTest extends TestCase
                     return $faker->password;
                 },
             ],
+            'addresses' => [
+                'address' => 'streetAddress',
+                'city' => 'city',
+                'state' => 'state',
+                'country' => 'country',
+                'postal_code' => 'postcode',
+            ]
         ];
+    }
+
+    public function testOnlyRequestedTablesAreScrubbed()
+    {
+        $this->addConfig();
+
+        $userAttributes = [
+            'id' => 1,
+            'first_name' => 'George',
+            'last_name' => 'Costanza',
+            'email' => 'gcostanza@hotmail.com'
+        ];
+        $this->addUser($userAttributes);
+
+        $addressAttributes = [
+            'address' => '1344 Queens Blvd',
+            'city' => 'New York',
+            'state' => 'New York',
+            'country' => 'United States',
+            'postal_code' => '11101',
+        ];
+        $this->addAddress($addressAttributes);
+
+        $this->artisan('carwash:scrub', ['--table' => ['addresses']]);
+
+        $user = $this->findUser(1);
+
+        $this->assertArraySubset($userAttributes, (array)$user);
+
+        $address = $this->findAddress(1);
+
+        $this->assertNotEquals($addressAttributes['address'], $address->address);
+        $this->assertNotEquals($addressAttributes['city'], $address->city);
+        $this->assertNotEquals($addressAttributes['state'], $address->state);
+        $this->assertNotEquals($addressAttributes['country'], $address->country);
+        $this->assertNotEquals($addressAttributes['postal_code'], $address->postal_code);
     }
 
     private function addUser($user)
@@ -187,6 +230,16 @@ class ScrubTest extends TestCase
     private function findUser($id)
     {
         return \DB::table('users')->find($id);
+    }
+
+    private function addAddress($address)
+    {
+        \DB::table('addresses')->insert($address);
+    }
+
+    private function findAddress($id)
+    {
+        return \DB::table('addresses')->find($id);
     }
 
 }

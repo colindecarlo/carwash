@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Scrub extends Command
 {
-    protected $signature = 'carwash:scrub';
+    protected $signature = 'carwash:scrub {--table=*}';
     protected $description = 'Scrub data in the database';
     protected $faker;
 
@@ -22,7 +22,7 @@ class Scrub extends Command
         $this->info("Entering Carwash...");
         $this->line("");
 
-        collect(config('carwash'))->each(function ($fields, $table) {
+        collect(config('carwash'))->filter($this->tablesToScrub())->each(function ($fields, $table) {
             $this->info("Scrubbing table <error>{$table}</error>...");
 
             $records = $this->getRecordsFromTable($table);
@@ -80,6 +80,20 @@ class Scrub extends Command
             $model->setTable($table);
             $model->fill($attributes);
         });
+    }
+
+    private function tablesToScrub()
+    {
+        if (empty($this->option('table'))) {
+            return function () {
+                return true;
+            };
+        }
+
+        $tables = $this->option('table');
+        return function ($_, $table) use ($tables) {
+            return in_array($table, $tables);
+        };
     }
 
 }
